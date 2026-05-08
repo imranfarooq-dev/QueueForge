@@ -1,0 +1,210 @@
+{
+  "info": {
+    "name": "QueueForge - Job API",
+    "description": "REST collection for the QueueForge Spring Boot backend. Variables: {{baseUrl}} (default http://localhost:8080), {{jobId}} (auto-set by Create Job).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "queueforge-job-api"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "jobId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Health & Info",
+      "item": [
+        {
+          "name": "Health (Actuator)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/actuator/health", "host": ["{{baseUrl}}"], "path": ["actuator", "health"] }
+          }
+        },
+        {
+          "name": "Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/actuator/metrics", "host": ["{{baseUrl}}"], "path": ["actuator", "metrics"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "Create Job",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('returns id', () => pm.expect(json.id).to.be.a('number'));",
+                  "pm.test('status QUEUED', () => pm.expect(json.status).to.eql('QUEUED'));",
+                  "pm.collectionVariables.set('jobId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"type\": \"EMAIL\",\n  \"payload\": \"{\\\"to\\\":\\\"test@gmail.com\\\",\\\"subject\\\":\\\"hi\\\"}\"\n}" },
+            "url": { "raw": "{{baseUrl}}/jobs", "host": ["{{baseUrl}}"], "path": ["jobs"] }
+          }
+        },
+        {
+          "name": "Bulk Create Jobs",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"jobs\": [\n    { \"type\": \"EMAIL\", \"payload\": \"{\\\"to\\\":\\\"a@x.com\\\"}\" },\n    { \"type\": \"IMAGE_PROCESSING\", \"payload\": \"{\\\"url\\\":\\\"img.png\\\"}\" },\n    { \"type\": \"REPORT\", \"payload\": \"{\\\"reportId\\\":42}\" }\n  ]\n}" },
+            "url": { "raw": "{{baseUrl}}/jobs/bulk", "host": ["{{baseUrl}}"], "path": ["jobs", "bulk"] }
+          }
+        },
+        {
+          "name": "Get Job by Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/jobs/{{jobId}}", "host": ["{{baseUrl}}"], "path": ["jobs", "{{jobId}}"] }
+          }
+        },
+        {
+          "name": "List Jobs (filter + paginate)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs?status=QUEUED&type=EMAIL&page=0&size=20&sort=id,desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs"],
+              "query": [
+                { "key": "status", "value": "QUEUED" },
+                { "key": "type", "value": "EMAIL" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" },
+                { "key": "sort", "value": "id,desc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/jobs/stats", "host": ["{{baseUrl}}"], "path": ["jobs", "stats"] }
+          }
+        },
+        {
+          "name": "Update Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"PROCESSING\"\n}" },
+            "url": { "raw": "{{baseUrl}}/jobs/{{jobId}}/status", "host": ["{{baseUrl}}"], "path": ["jobs", "{{jobId}}", "status"] }
+          }
+        },
+        {
+          "name": "Cancel Job",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/jobs/{{jobId}}/cancel", "host": ["{{baseUrl}}"], "path": ["jobs", "{{jobId}}", "cancel"] }
+          }
+        },
+        {
+          "name": "Retry Job (must be FAILED)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/jobs/{{jobId}}/retry", "host": ["{{baseUrl}}"], "path": ["jobs", "{{jobId}}", "retry"] }
+          }
+        },
+        {
+          "name": "Delete Job",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/jobs/{{jobId}}", "host": ["{{baseUrl}}"], "path": ["jobs", "{{jobId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin / Visualization",
+      "item": [
+        {
+          "name": "Redis Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/admin/redis/info", "host": ["{{baseUrl}}"], "path": ["admin", "redis", "info"] }
+          }
+        },
+        {
+          "name": "Redis Keys (SCAN)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/redis/keys?pattern=queueforge:*&limit=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "redis", "keys"],
+              "query": [
+                { "key": "pattern", "value": "queueforge:*" },
+                { "key": "limit", "value": "100" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Queue Length",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/admin/queue/length", "host": ["{{baseUrl}}"], "path": ["admin", "queue", "length"] }
+          }
+        },
+        {
+          "name": "Queue Peek (LRANGE)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/queue?start=0&end=49",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "queue"],
+              "query": [
+                { "key": "start", "value": "0" },
+                { "key": "end", "value": "49" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Kafka Topics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/admin/kafka/topics", "host": ["{{baseUrl}}"], "path": ["admin", "kafka", "topics"] }
+          }
+        },
+        {
+          "name": "Kafka Recent Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/admin/kafka/events/recent", "host": ["{{baseUrl}}"], "path": ["admin", "kafka", "events", "recent"] }
+          }
+        }
+      ]
+    }
+  ]
+}

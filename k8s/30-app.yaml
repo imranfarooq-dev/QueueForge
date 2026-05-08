@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: queueforge-app
+  namespace: queueforge
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: queueforge-app }
+  template:
+    metadata:
+      labels: { app: queueforge-app }
+    spec:
+      containers:
+        - name: app
+          image: queueforge-app:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: queueforge-config
+            - secretRef:
+                name: queueforge-secret
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "384Mi"
+            limits:
+              cpu: "1000m"
+              memory: "768Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: queueforge-app
+  namespace: queueforge
+spec:
+  type: ClusterIP
+  selector: { app: queueforge-app }
+  ports:
+    - port: 80
+      targetPort: 8080
