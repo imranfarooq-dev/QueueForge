@@ -87,6 +87,12 @@
             <artifactId>spring-kafka</artifactId>
         </dependency>
 
+        <!-- WebSocket + STOMP (real-time push to the Angular client) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
         <!-- JSON serialization helpers (already pulled in by web, declared for clarity) -->
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>

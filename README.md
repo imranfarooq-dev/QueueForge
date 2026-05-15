@@ -198,6 +198,43 @@ A Postman collection (`postman/QueueForge.postman_collection.json`) covers all o
 
 ---
 
+## Frontend (Angular 21)
+
+There's a sibling Angular client at `../queue-frontend/` that consumes every endpoint in this README. To run them together:
+
+```bash
+# terminal 1 — backend
+cd queueforge-parent
+docker compose up -d postgres redis kafka
+./mvnw spring-boot:run                 # http://localhost:8080
+
+# terminal 2 — frontend
+cd queue-frontend
+npm install
+npm start                              # http://localhost:4200
+```
+
+Open http://localhost:4200 → you get a Dashboard, Jobs page, Job detail page, and Admin/Visualization page. The full step-by-step flow is in [`queue-frontend/README.md`](../queue-frontend/README.md).
+
+### CORS
+
+The backend allows `http://localhost:4200` by default (see `WebCorsConfig`). To allow more origins, set:
+
+```bash
+CORS_ALLOWED_ORIGINS=http://localhost:4200,https://staging.example.com
+```
+
+(Comma-separated. Configured in `application.properties` as `queueforge.cors.allowed-origins`.)
+
+### Environment configuration
+
+Both projects ship a `.env.example` for documentation:
+
+- `queueforge-parent/.env.example` — backend env vars (DB, Redis, Kafka, CORS, server port)
+- `queue-frontend/.env.example` — frontend variables (`API_BASE_URL`); note Angular bakes config in at build time via `src/environments/environment*.ts` rather than reading a runtime `.env`.
+
+---
+
 ## Usage flow — end to end
 
 A guided walkthrough of the complete lifecycle of a job. Each step shows the command, what happens internally, and how to verify it. Until the Worker Service exists (Step 3), you'll **simulate the worker** by flipping status manually with `PATCH`.
