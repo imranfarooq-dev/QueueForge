@@ -1,6 +1,7 @@
 package com.queueforge.job;
 
 import jakarta.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Entity
@@ -8,7 +9,9 @@ import java.time.LocalDateTime;
         @Index(name = "idx_jobs_status", columnList = "status"),
         @Index(name = "idx_jobs_type", columnList = "type")
 })
-public class Job {
+public class Job implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,7 +20,7 @@ public class Job {
     @Column(nullable = false)
     private String type;
 
-    @Lob
+    @Column(columnDefinition = "text")
     private String payload;
 
     @Enumerated(EnumType.STRING)
